@@ -1,35 +1,51 @@
 [build-system]
-requires = ["setuptools>=61.0"]
+requires = ["setuptools>=61"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "edgrapi"
-version = "0.1.0"
-description = "Tiny Python client for the Edgrapi SEC EDGAR data API: financials, insider trades, 8-K events, 13F holdings, and 13D/13G stakes as clean JSON."
+version = "1.0.0"
+description = "SEC EDGAR filings as clean JSON — insider trades, 8-K events, 13F holdings, activist stakes, XBRL fundamentals. Zero dependencies."
 readme = "README.md"
-requires-python = ">=3.8"
 license = { text = "MIT" }
+requires-python = ">=3.8"
 authors = [{ name = "Paper and Beyond", email = "support@edgrapi.com" }]
 keywords = [
-  "sec", "edgar", "sec edgar", "13f", "insider trading", "form 4",
-  "8-k", "10-k", "xbrl", "financial data", "financial statements", "api",
+    "sec", "edgar", "sec-edgar", "filings", "13f", "form-4", "8-k", "13d",
+    "insider-trading", "xbrl", "fundamentals", "finance", "fintech",
+    "stocks", "equity-research", "financial-data", "api-client", "mcp",
 ]
 classifiers = [
-  "Development Status :: 4 - Beta",
-  "Intended Audience :: Developers",
-  "Intended Audience :: Financial and Insurance Industry",
-  "License :: OSI Approved :: MIT License",
-  "Programming Language :: Python :: 3",
-  "Topic :: Office/Business :: Financial",
-  "Topic :: Software Development :: Libraries :: Python Modules",
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Financial and Insurance Industry",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Office/Business :: Financial",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Typing :: Typed",
 ]
-dependencies = ["requests>=2.20"]
+dependencies = []
 
 [project.urls]
 Homepage = "https://edgrapi.com"
 Documentation = "https://edgrapi.com/docs"
 Repository = "https://github.com/paperandbeyond23-gif/edgrapi-python"
 Issues = "https://github.com/paperandbeyond23-gif/edgrapi-python/issues"
+Changelog = "https://github.com/paperandbeyond23-gif/edgrapi-python/blob/main/CHANGELOG.md"
+
+[project.scripts]
+edgrapi = "edgrapi.cli:main"
 
 [tool.setuptools]
 packages = ["edgrapi"]
+
+[tool.setuptools.package-data]
+edgrapi = ["py.typed"]
