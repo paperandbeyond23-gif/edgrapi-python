@@ -40,29 +40,22 @@ this committed and pushed.
 **Publishing is irreversible.** Version 1.0.0 can never be reused on PyPI even if yanked,
 so read the README first — on PyPI that page is the landing page.
 
-## Verification status — all 22 endpoints confirmed live
+## What I could NOT verify
 
-Verified 2026-09-05 against production with a real key. **22/22 endpoints returned
-successfully, 0 failures**, 48 credits spent.
+**No real API call was ever made.** There was no key available in this session and
+creating one is the owner's action, not mine. Consequences:
 
-What that settled:
+- Every method signature comes from the live OpenAPI spec, so paths and query parameter
+  *names* are correct.
+- **Response shapes are unexercised.** If any endpoint returns something unexpected, the
+  client will still hand it back — it does not validate bodies — but the README examples
+  showing `r["count"]` and similar are inferred, not confirmed.
+- The one live check I did run: a deliberately invalid key against production returned
+  `Edgrapi 401 (unauthorized): Invalid API key. [request_id=req_aebc3238f760069c]`. So the
+  transport, error mapping and request-id extraction are confirmed against the real API.
 
-- **Response shapes are confirmed, not inferred.** The README's examples match what the
-  API actually returns.
-- **The credit model documented in the README is correct.** Observed live: `clusters`
-  returned `count=0` and was billed **1** credit rather than 5, and `restatements`
-  likewise dropped from 3 to 1 — the empty-result floor firing on count-keyed endpoints.
-  `holdings` has no `count` key and was billed the full 5, confirming it never takes
-  that discount.
-- **The non-JSON path works.** `download` returned 1.5 MB of raw XBRL XML with
-  `dict_keys=0` and did not crash; the body arrived on `.text`/`.content`. Without the
-  content-type branch in `_http.py`, `json.loads` would have thrown on a successful call.
-- **`holdings("berkshire")` independently matches a from-scratch parse of the raw SEC
-  filing**: 29 positions both ways, Apple aggregated from 12 raw rows to 1, identical
-  share count (227,917,808) and value ($65,950,296,923), 1 exit. Two separate pipelines
-  agreeing to the share is good evidence the aggregation is right.
-
-No README or code corrections were needed. 1.0.0 as published is accurate.
+**Recommended before upload:** set `EDGRAPI_KEY` and run each method once. A key with
+~40 credits covers the whole surface.
 
 ## Design decisions worth keeping or arguing with
 

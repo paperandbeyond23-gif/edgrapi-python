@@ -1,5 +1,20 @@
 # Changelog
 
+## 1.1.0 — 2026-09-17
+
+Edgrapi is now a US government data API, and the client follows.
+
+### Added
+- **US government endpoints** — four methods and CLI commands on one key:
+  - `opportunities(...)` — federal contract opportunities from SAM.gov
+  - `awards(...)` — federal spending awards from USAspending (contracts, grants, loans, direct payments)
+  - `grants(...)` — federal grant funding from Grants.gov
+  - `congress(ticker=None, ...)` — US House STOCK Act stock trades
+- Credit weights for the new endpoints (2 each) added to `COSTS`.
+
+### Changed
+- Package description and docs reframed from SEC-only to US government data (SEC EDGAR + SAM.gov, USAspending, Grants.gov, Congress). No breaking changes; every existing method and CLI command is unchanged.
+
 ## 1.0.0 — 2026-09-05
 
 First stable release. Rewritten from 0.1.0.

@@ -1,21 +1,24 @@
 # -*- coding: utf-8 -*-
-"""edgrapi — SEC EDGAR filings as clean JSON, with no dependencies.
+"""edgrapi — US government data as clean JSON, with no dependencies.
 
-The SEC's data is free. Parsing it correctly is the work, and most of the bugs
-are silent: a 13F lists one holding once per sub-manager, so a raw table
-double-counts unless you aggregate by CUSIP; a ``putCall`` row is a bet against
-the stock, not a holding; filings before 2023 report value in thousands and
-newer ones in whole dollars. This client talks to an API that has already done
-that work.
+One key reaches five official sources: SEC EDGAR filings, SAM.gov contract
+opportunities, USAspending awards, Grants.gov grants and US House Congress
+stock trades. The data is free; parsing it correctly is the work, and most of
+the bugs are silent: a 13F lists one holding once per sub-manager, so a raw
+table double-counts unless you aggregate by CUSIP; a SAM.gov notice's
+``description`` is a URL, not text. This client talks to an API that has
+already done that work.
 
     from edgrapi import Client
 
     c = Client("edgr_...")                  # or set EDGRAPI_KEY
     c.holdings("berkshire")                 # 13F, CUSIP-aggregated, diffed QoQ
     c.insider("AAPL")                       # Form 4, code P separated from 10b5-1
-    c.clusters(days=15, min_insiders=3)     # several insiders buying at once
-    c.events("AAPL", notable=True)          # 8-K, item-coded
     c.search("climate risk", forms="10-K")  # full text, every filing since 2001
+    c.opportunities(naics="336411", ptype="o")   # SAM.gov federal contracts
+    c.awards(keyword="drone", agency="Department of Defense")  # USAspending
+    c.grants(keyword="health", status="posted")  # Grants.gov funding
+    c.congress("NVDA", action="buy")        # House STOCK Act trades
 
 Every response is the API's JSON dict plus what the call cost::
 
@@ -29,7 +32,7 @@ import os
 from ._http import (EdgrapiError, OutOfCredits, RateLimited, Response,
                     build_url, request)
 
-__version__ = "1.0.0"
+__version__ = "1.1.0"
 __all__ = ["Client", "EdgrapiError", "OutOfCredits", "RateLimited", "Response",
            "__version__"]
 
@@ -42,13 +45,14 @@ DEFAULT_BASE = "https://api.edgrapi.com"
 COSTS = {
     "company": 1, "filings": 1, "events": 1, "resolve": 1, "search": 1,
     "download": 1, "shares": 2, "formd": 2, "subsidiaries": 2,
+    "opportunities": 2, "awards": 2, "grants": 2, "congress": 2,
     "fundamentals": 3, "ratios": 3, "xbrl": 3, "form144": 3,
     "sections": 5, "insider": 5, "holdings": 5, "activist": 5,
 }
 
 
 class Client:
-    """Client for the Edgrapi SEC-data API.
+    """Client for the Edgrapi US government data API.
 
     Args:
         api_key: your key. Falls back to the ``EDGRAPI_KEY`` environment
@@ -201,6 +205,44 @@ class Client:
             doc = c.download("0000320193-25-000079").text
         """
         return self.get("/v1/download", accession=accession, file=file, cik=cik)
+
+    # ── US government data (SAM.gov, USAspending, Grants.gov, Congress) ─────
+    def opportunities(self, posted_from=None, posted_to=None, naics=None, ptype=None,
+                      state=None, set_aside=None, title=None, limit=None, offset=None):
+        """Federal contract opportunities from SAM.gov, normalized to flat JSON.
+        Dates are ``YYYY-MM-DD``; leave them off for the recent feed. ``ptype`` is
+        the notice type (``'o'`` solicitation, ``'p'`` presolicitation, ...) and
+        ``set_aside`` a code like ``'SBA'`` or ``'8A'``."""
+        return self.get("/v1/opportunities", posted_from=posted_from, posted_to=posted_to,
+                        naics=naics, ptype=ptype, state=state, set_aside=set_aside,
+                        title=title, limit=limit, offset=offset)
+
+    def awards(self, category=None, keyword=None, agency=None, recipient=None, state=None,
+               start=None, end=None, limit=None, page=None, sort=None, order=None):
+        """Federal spending awards from USAspending. ``category`` is one of
+        contracts / idvs / grants / loans / direct_payments / other (default
+        contracts). Pairs with :meth:`opportunities`: the SAM solicitation, then
+        who won the awards. Dates are ``YYYY-MM-DD``."""
+        return self.get("/v1/awards", category=category, keyword=keyword, agency=agency,
+                        recipient=recipient, state=state, start=start, end=end,
+                        limit=limit, page=page, sort=sort, order=order)
+
+    def grants(self, keyword=None, status=None, agency=None, category=None,
+               eligibility=None, aln=None, limit=None, offset=None):
+        """Federal grant funding opportunities from Grants.gov. Defaults to open
+        (``posted`` + ``forecasted``). ``aln`` is the Assistance Listing (CFDA)
+        number, e.g. ``'93.217'``."""
+        return self.get("/v1/grants", keyword=keyword, status=status, agency=agency,
+                        category=category, eligibility=eligibility, aln=aln,
+                        limit=limit, offset=offset)
+
+    def congress(self, ticker=None, action=None, limit=None):
+        """Congressional stock trades from US House STOCK Act periodic transaction
+        reports. Pass a ``ticker`` for one stock's history, or omit it for the
+        recent feed. ``action`` filters to ``'buy'`` or ``'sell'``. House-only for
+        now; disclosure lags the trade by up to 45 days."""
+        path = "/v1/congress/%s" % _seg(ticker) if ticker else "/v1/congress"
+        return self.get(path, action=action, limit=limit)
 
 
 def _seg(v):

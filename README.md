@@ -1,6 +1,6 @@
 # edgrapi
 
-**SEC EDGAR filings as clean JSON. Zero dependencies.**
+**US government data as clean JSON. Zero dependencies.**
 
 [![PyPI](https://img.shields.io/pypi/v/edgrapi)](https://pypi.org/project/edgrapi/)
 [![Python](https://img.shields.io/pypi/pyversions/edgrapi)](https://pypi.org/project/edgrapi/)
@@ -71,6 +71,15 @@ The SEC's data is free. Parsing it correctly is the work, and most of the bugs a
 | `search(q, forms=, startdt=)` | Full-text search since 2001 |
 | `download(accession)` | Raw filing document (read `.text` / `.content`, not as a dict) |
 
+**US government data** (same key):
+
+| Method | What it returns |
+|---|---|
+| `opportunities(naics=, ptype=, state=, set_aside=, ...)` | Federal contract opportunities from SAM.gov |
+| `awards(category=, keyword=, agency=, recipient=, ...)` | Federal spending awards from USAspending |
+| `grants(keyword=, status=, agency=, aln=, ...)` | Federal grant funding from Grants.gov |
+| `congress(ticker=None, action=, limit=)` | US House STOCK Act stock trades |
+
 Anything added after this release is reachable with `c.get("/v1/whatever", param=...)`.
 
 ## Credits, errors and retries
@@ -108,7 +117,7 @@ except EdgrapiError as e:
 - `holdings()` takes a fund, not a ticker — a name like `berkshire`, a CIK, or a filer ticker.
 - `activist()` and `formd()` accept `"latest"` for the market-wide feed.
 - Only open-market purchases (code **P**) mean an insider spent their own money. Option exercises and vesting also appear on Form 4 as acquisitions but say nothing; most sales are pre-scheduled 10b5-1.
-- Data is public-domain SEC EDGAR. Nothing here is investment advice.
+- Data is public-domain US government data (SEC EDGAR, SAM.gov, USAspending, Grants.gov, Congress). Nothing here is investment advice.
 
 ## Also available
 

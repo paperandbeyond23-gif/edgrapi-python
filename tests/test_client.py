@@ -141,6 +141,42 @@ class TestNonJsonBody(unittest.TestCase):
         self.assertEqual(r["count"], 3)
 
 
+class TestGovEndpoints(unittest.TestCase):
+    """The US government endpoints build the right paths and pass params through."""
+
+    def _url(self, fn):
+        c = Client("edgr_test")
+        with mock.patch("edgrapi._http.urllib.request.urlopen") as m:
+            m.return_value = FakeResp({"count": 0})
+            fn(c)
+        return m.call_args[0][0].full_url
+
+    def test_opportunities_params(self):
+        u = self._url(lambda c: c.opportunities(naics="336411", ptype="o", limit=5))
+        self.assertIn("/v1/opportunities", u)
+        self.assertIn("naics=336411", u)
+        self.assertIn("ptype=o", u)
+        self.assertIn("limit=5", u)
+
+    def test_awards_category_passthrough(self):
+        u = self._url(lambda c: c.awards(category="grants", keyword="drone"))
+        self.assertIn("/v1/awards", u)
+        self.assertIn("category=grants", u)
+        self.assertIn("keyword=drone", u)
+
+    def test_grants_aln(self):
+        u = self._url(lambda c: c.grants(aln="93.217", status="posted"))
+        self.assertIn("/v1/grants", u)
+        self.assertIn("aln=93.217", u)
+
+    def test_congress_feed_vs_ticker(self):
+        feed = self._url(lambda c: c.congress(action="buy"))
+        self.assertIn("/v1/congress?", feed)
+        self.assertNotIn("/v1/congress/", feed)
+        one = self._url(lambda c: c.congress("NVDA"))
+        self.assertIn("/v1/congress/NVDA", one)
+
+
 class TestCli(unittest.TestCase):
     def test_every_command_maps_to_a_real_method(self):
         from edgrapi.cli import COMMANDS

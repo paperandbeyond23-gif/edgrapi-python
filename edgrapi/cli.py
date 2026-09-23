@@ -37,20 +37,29 @@ COMMANDS = {
     "holdings":       ("holdings", ["identifier"], ["limit", "changes"]),
     "formd":          ("formd", ["ident?"], ["limit"]),
     "search":         ("search", ["q"], ["forms", "startdt", "enddt", "limit", "offset"]),
+    # US government data (SAM.gov, USAspending, Grants.gov, Congress)
+    "opportunities":  ("opportunities", [], ["posted_from", "posted_to", "naics", "ptype", "state", "set_aside", "title", "limit", "offset"]),
+    "awards":         ("awards", [], ["category", "keyword", "agency", "recipient", "state", "start", "end", "limit", "page", "sort", "order"]),
+    "grants":         ("grants", [], ["keyword", "status", "agency", "category", "eligibility", "aln", "limit", "offset"]),
+    "congress":       ("congress", ["ticker?"], ["action", "limit"]),
 }
 
-_INT = {"limit", "offset", "days", "min_insiders", "min_value"}
+_INT = {"limit", "offset", "days", "min_insiders", "min_value", "page"}
 _BOOL = {"notable", "changes", "history", "activist_only"}
 
 
 def _build_parser():
     p = argparse.ArgumentParser(
         prog="edgrapi",
-        description="SEC EDGAR filings as clean JSON. Free key: https://edgrapi.com/app",
+        description="US government data as clean JSON: SEC filings, SAM.gov contracts, "
+                    "USAspending awards, Grants.gov grants and Congress trades. "
+                    "Free key: https://edgrapi.com/app",
         epilog="Examples:\n"
                "  edgrapi holdings berkshire --changes\n"
-               "  edgrapi clusters --days 15 --min-insiders 3\n"
-               "  edgrapi insider AAPL --limit 5 | jq '.transactions[0]'\n"
+               "  edgrapi opportunities --naics 336411 --ptype o --limit 5\n"
+               "  edgrapi awards --keyword drone --agency 'Department of Defense'\n"
+               "  edgrapi grants --keyword health --status posted\n"
+               "  edgrapi congress NVDA --action buy\n"
                "  edgrapi search 'climate risk' --forms 10-K",
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
